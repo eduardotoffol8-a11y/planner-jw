@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Agenda Espiritual — Planner com Alarmes + Metas, Cronômetro e Leitura</title>
+  <meta name="description" content="Agenda espiritual completa: calendário com alarmes, metas de campo por perfil, cronômetro de ministério e plano de leitura bíblica (anual ou personalizado). 100% HTML/JS/CSS, pronto para GitHub Pages." />
+  <style>
+    :root{
+      --bg:#0b1020; --card:#141a2e; --muted:#8aa3c7; --text:#eaf2ff; --accent:#5cc8ff; --ok:#3ddc97; --warn:#ffd166; --danger:#ff6b6b;
+      --c-ministerio:#4f46e5; --c-familia:#ef4444; --c-trabalho:#f59e0b; --c-reuniao:#10b981; --c-cong:#a855f7; --c-leitura:#22c55e; --c-apoio:#06b6d4; --c-custom:#eab308;
+    }
+    /* ===== THEMES ===== */
+    [data-theme="light"]{--bg:#f6f7fb; --card:#ffffff; --muted:#5a6b85; --text:#0c1326; --accent:#2463eb; --ok:#10b981; --warn:#b7791f; --danger:#dc2626; --c-ministerio:#4338ca; --c-familia:#dc2626; --c-trabalho:#b45309; --c-reuniao:#059669; --c-cong:#7c3aed; --c-leitura:#16a34a; --c-apoio:#0891b2; --c-custom:#ca8a04}
+    [data-theme="sand"]{--bg:#f7f3ea; --card:#fffdf8; --muted:#6b5e4a; --text:#2b2417; --accent:#9a6b34; --ok:#2f855a; --warn:#b7791f; --danger:#c53030; --c-ministerio:#8b5cf6; --c-familia:#ef4444; --c-trabalho:#d97706; --c-reuniao:#10b981; --c-cong:#a855f7; --c-leitura:#22c55e; --c-apoio:#06b6d4; --c-custom:#f59e0b}
+    [data-theme="sky"]{--bg:#eaf4ff; --card:#ffffff; --muted:#43607c; --text:#0b213a; --accent:#2563eb; --ok:#0ea5e9; --warn:#ca8a04; --danger:#ef4444; --c-ministerio:#3b82f6; --c-familia:#ef4444; --c-trabalho:#f59e0b; --c-reuniao:#10b981; --c-cong:#6366f1; --c-leitura:#22c55e; --c-apoio:#06b6d4; --c-custom:#eab308}
+    [data-theme="forest"]{--bg:#0e1a14; --card:#13241b; --muted:#9fb9a6; --text:#e6ffef; --accent:#34d399; --ok:#22c55e; --warn:#f59e0b; --danger:#ef4444; --c-ministerio:#4ade80; --c-familia:#f87171; --c-trabalho:#fbbf24; --c-reuniao:#34d399; --c-cong:#86efac; --c-leitura:#22c55e; --c-apoio:#2dd4bf; --c-custom:#a3e635}
+    [data-theme="sunrise"]{--bg:#fff7ed; --card:#fffaf3; --muted:#7a5a3f; --text:#2b170d; --accent:#fb923c; --ok:#16a34a; --warn:#d97706; --danger:#dc2626; --c-ministerio:#fb7185; --c-familia:#ef4444; --c-trabalho:#f59e0b; --c-reuniao:#10b981; --c-cong:#f472b6; --c-leitura:#22c55e; --c-apoio:#06b6d4; --c-custom:#f97316}
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;background:linear-gradient(180deg,#09122a 0%, var(--bg) 100%);color:var(--text);font:500 16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,"Helvetica Neue",sans-serif}
+    a{color:var(--accent)}
+    .container{max-width:1100px;margin:0 auto;padding:20px}
+    header{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:16px}
+    .title{font-weight:800;letter-spacing:.2px;font-size:22px}
+    .bar{display:flex;gap:8px;flex-wrap:wrap}
+    .btn{padding:10px 14px;border:1px solid #2a335a;border-radius:12px;background:#0f1530;color:var(--text);cursor:pointer;transition:.2s;box-shadow:0 0 0 1px rgba(255,255,255,.03) inset}
+    [data-theme="light"] .btn,[data-theme="sky"] .btn,[data-theme="sand"] .btn{background:#f3f6ff;border-color:#dfe6fb;color:#0c1326}
+    .btn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(0,0,0,.18)}
+    .btn.primary{background:linear-gradient(135deg,#2c3e8f,#5b6cff);border-color:#39408a;color:white}
+    .btn.ghost{background:transparent}
+    .btn.small{padding:6px 9px;border-radius:10px;font-size:14px}
+
+    .row{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+    .card{background:var(--card);border:1px solid #212a4a;border-radius:16px;padding:16px;box-shadow:0 8px 30px rgba(0,0,0,.18)}
+    [data-theme="light"] .card,[data-theme="sky"] .card,[data-theme="sand"] .card{border-color:#e7ecfb}
+
+    .weekbar{display:flex;gap:8px;align-items:center}
+    .weekbar .date{font-weight:700;opacity:.9}
+
+    .legend{display:flex;gap:8px;flex-wrap:wrap}
+    .chip{display:inline-flex;gap:8px;align-items:center;border-radius:999px;padding:6px 10px;background:#101633;border:1px solid #23315e;color:#cfe4ff;font-size:12px}
+    [data-theme="light"] .chip,[data-theme="sky"] .chip,[data-theme="sand"] .chip{background:#f1f5ff;border-color:#dbe3fb;color:#203055}
+    .dot{width:10px;height:10px;border-radius:50%}
+
+    .grid{display:grid;grid-template-columns:repeat(7,1fr);gap:14px;margin-top:14px}
+    .col{background:rgba(255,255,255,.02);border:1px solid #1d2442;border-radius:14px;padding:10px;min-height:220px}
+    [data-theme="light"] .col,[data-theme="sky"] .col,[data-theme="sand"] .col{background:#fff;border-color:#e7ecfb}
+    .col h3{margin:2px 2px 10px;font-size:14px;font-weight:800;color:#bcd5ff;display:flex;justify-content:space-between;align-items:center}
+    [data-theme="light"] .col h3,[data-theme="sky"] .col h3,[data-theme="sand"] .col h3{color:#224}
+    .event{border-radius:12px;padding:8px 10px;margin:8px 0;background:#0f1530;border:1px solid #263059;box-shadow:0 4px 16px rgba(0,0,0,.15);cursor:pointer}
+    [data-theme="light"] .event,[data-theme="sky"] .event,[data-theme="sand"] .event{background:#f6f8ff;border-color:#e2e8ff}
+    .event .t{font-weight:800}
+    .event .info{font-size:12px;color:#b8c8e6;opacity:.9;margin-top:2px}
+    [data-theme="light"] .event .info,[data-theme="sky"] .event .info,[data-theme="sand"] .event .info{color:#243b6b;opacity:.9}
+    .tag{font-size:11px;padding:2px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06)}
+    [data-theme="light"] .tag,[data-theme="sky"] .tag,[data-theme="sand"] .tag{border-color:#cad5ff;background:#eef2ff;color:#1e2b4d}
+
+    .muted{color:var(--muted)}
+    .footer{opacity:.75;font-size:13px;margin-top:14px}
+
+    /* Modal */
+    dialog{border:none;border-radius:18px;padding:0;max-width:760px;width:96vw;background:var(--card);color:var(--text);box-shadow:0 24px 70px rgba(0,0,0,.4)}
+    .modal{padding:18px}
+    .modal h2{margin:0 0 10px;font-size:20px}
+    .grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+    label{font-size:13px;color:#c9dcff}
+    [data-theme="light"] label,[data-theme="sky"] label,[data-theme="sand"] label{color:#263657}
+    input,select,textarea{width:100%;margin-top:6px;background:#0f1530;border:1px solid #2a335a;color:#eaf2ff;border-radius:10px;padding:10px}
+    [data-theme="light"] input,[data-theme="light"] select,[data-theme="light"] textarea,
+    [data-theme="sky"] input,[data-theme="sky"] select,[data-theme="sky"] textarea,
+    [data-theme="sand"] input,[data-theme="sand"] select,[data-theme="sand"] textarea{background:#ffffff;border-color:#dbe3fb;color:#001122}
+    input[type="datetime-local"], input[type="date"], input[type="time"]{color-scheme:dark}
+    [data-theme="light"] input[type="datetime-local"], [data-theme="light"] input[type="date"], [data-theme="light"] input[type="time"],
+    [data-theme="sky"] input[type="datetime-local"], [data-theme="sky"] input[type="date"], [data-theme="sky"] input[type="time"],
+    [data-theme="sand"] input[type="datetime-local"], [data-theme="sand"] input[type="date"], [data-theme="sand"] input[type="time"]{color-scheme:light}
+
+    .line{height:1px;background:#223056;margin:12px 0}
+    [data-theme="light"] .line,[data-theme="sky"] .line,[data-theme="sand"] .line{background:#e7ecfb}
+    .empty{opacity:.7;font-size:14px}
+
+    /* Dashboard cards */
+    .dash{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin:14px 0}
+    @media (max-width:1000px){.dash{grid-template-columns:1fr 1fr}}
+    @media (max-width:700px){.dash{grid-template-columns:1fr}}
+
+    .progress{height:12px;border-radius:999px;background:#101633;border:1px solid #23315e;position:relative;overflow:hidden}
+    .progress .bar{height:100%;background:linear-gradient(90deg,var(--ok),var(--accent));border-radius:999px;width:0%}
+    .kpi{display:flex;justify-content:space-between;align-items:center;margin-top:8px;font-size:13px;color:var(--muted)}
+
+    .timer{display:flex;flex-direction:column;gap:10px}
+    .timer .display{font-size:34px;font-weight:800;letter-spacing:1px;text-align:center}
+    .timer .controls{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+
+    .read-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    @media (max-width:640px){.read-row{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="row">
+        <div class="title">Agenda Espiritual — Planner com Alarmes</div>
+        <button class="btn small ghost" id="btnPerms" title="Ativar notificações">🔔 Ativar notificações</button>
+      </div>
+      <div class="bar">
+        <button class="btn" id="btnPrev">◀ Semana anterior</button>
+        <div class="weekbar"><span class="date" id="weekLabel"></span></div>
+        <button class="btn" id="btnNext">Semana seguinte ▶</button>
+        <button class="btn primary" id="btnNew">＋ Novo compromisso</button>
+        <button class="btn ghost" id="btnExport">⬇️ Exportar</button>
+        <button class="btn ghost" id="btnImport">⬆️ Importar</button>
+        <select id="themeSelect" class="btn">
+          <option value="slate">Tema: Escuro (padrão)</option>
+          <option value="light">Tema: Claro</option>
+          <option value="sky">Tema: Céu</option>
+          <option value="sand">Tema: Areia</option>
+          <option value="forest">Tema: Floresta</option>
+          <option value="sunrise">Tema: Amanhecer</option>
+        </select>
+        <input type="file" id="fileImport" accept="application/json" hidden />
+      </div>
+    </header>
+
+    <div class="legend card">
+      <span class="chip"><span class="dot" style="background:var(--c-ministerio)"></span> Ministério</span>
+      <span class="chip"><span class="dot" style="background:var(--c-familia)"></span> Adoração em família</span>
+      <span class="chip"><span class="dot" style="background:var(--c-trabalho)"></span> Trabalho secular</span>
+      <span class="chip"><span class="dot" style="background:var(--c-reuniao)"></span> Reuniões</span>
+      <span class="chip"><span class="dot" style="background:var(--c-cong)"></span> Congregação — Arranjos</span>
+      <span class="chip"><span class="dot" style="background:var(--c-leitura)"></span> Leitura diária</span>
+      <span class="chip"><span class="dot" style="background:var(--c-apoio)"></span> Ajudar o próximo</span>
+      <span class="chip"><span class="dot" style="background:var(--c-custom)"></span> Personalizado</span>
+    </div>
+
+    <!-- DASHBOARD -->
+    <section class="dash">
+      <!-- Perfil & Metas -->
+      <div class="card">
+        <div class="row" style="justify-content:space-between;align-items:center">
+          <strong>Perfil & Metas do Ministério</strong>
+          <button class="btn small ghost" id="btnProfile">⚙️ Ajustar</button>
+        </div>
+        <div class="muted" id="profileSummary" style="margin-top:8px">—</div>
+        <div class="progress" style="margin-top:10px"><div class="bar" id="hrsBar"></div></div>
+        <div class="kpi"><span id="hrsKpi">0:00 / —</span><span id="hrsPct">0%</span></div>
+      </div>
+
+      <!-- Cronômetro -->
+      <div class="card">
+        <strong>⏱️ Cronômetro do Ministério</strong>
+        <div class="timer">
+          <div class="display" id="timerDisp">00:00:00</div>
+          <div class="controls">
+            <button class="btn primary" id="tStart">Iniciar</button>
+            <button class="btn" id="tPause">Pausar</button>
+            <button class="btn ghost" id="tReset">Zerar</button>
+            <button class="btn" id="tSave">Salvar no calendário</button>
+          </div>
+          <div class="muted" style="text-align:center">Ao salvar, cria um compromisso “Ministério (Cronômetro)” com o período cronometrado.</div>
+        </div>
+      </div>
+
+      <!-- Leitura Bíblica -->
+      <div class="card">
+        <div class="row" style="justify-content:space-between;align-items:center">
+          <strong>📖 Plano de Leitura da Bíblia</strong>
+          <button class="btn small ghost" id="btnRead">Configurar</button>
+        </div>
+        <div class="muted" style="margin-top:8px" id="readSummary">Gere um plano anual ou personalizado. Os blocos entram no calendário como “Leitura: …”.</div>
+        <div class="row" style="margin-top:10px;gap:8px">
+          <button class="btn" id="btnClearRead">🗑️ Remover eventos de Leitura</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Semana -->
+    <section class="card">
+      <div class="row" style="justify-content:space-between;align-items:center">
+        <div class="muted">Clique em “Novo compromisso” para adicionar. Dados ficam no seu navegador (LocalStorage). Alarmes tocam com a aba aberta e notificações ativadas.</div>
+      </div>
+      <div class="grid" id="grid"></div>
+      <div class="footer">Dica: exporte seu plano periodicamente para backup. ⏰</div>
+    </section>
+  </div>
+
+  <!-- Modal: Novo/Editar compromisso -->
+  <dialog id="dlg">
+    <form class="modal" method="dialog" id="formEvt">
+      <h2 id="dlgTitle">Novo compromisso</h2>
+      <div class="grid2">
+        <div>
+          <label>Título
+            <input required id="f_title" placeholder="Ex.: Ministério em grupo" />
+          </label>
+        </div>
+        <div>
+          <label>Categoria
+            <select id="f_cat">
+              <option value="ministerio">Ministério</option>
+              <option value="familia">Adoração em família</option>
+              <option value="trabalho">Trabalho secular</option>
+              <option value="reuniao">Reuniões</option>
+              <option value="cong">Congregação — Arranjos</option>
+              <option value="leitura">Leitura diária</option>
+              <option value="apoio">Ajudar o próximo</option>
+              <option value="custom">Personalizado</option>
+            </select>
+          </label>
+        </div>
+        <div>
+          <label>Data
+            <input type="date" id="f_date" required />
+          </label>
+        </div>
+        <div>
+          <label>Início
+            <input type="time" id="f_start" required />
+          </label>
+        </div>
+        <div>
+          <label>Fim
+            <input type="time" id="f_end" required />
+          </label>
+        </div>
+        <div>
+          <label>Lembrete (min. antes)
+            <input type="number" id="f_rem" min="0" step="5" placeholder="Ex.: 10" />
+          </label>
+        </div>
+        <div>
+          <label>Repetir?
+            <select id="f_repeat">
+              <option value="none">Não</option>
+              <option value="daily">Diariamente</option>
+              <option value="weekly">Semanal</option>
+            </select>
+          </label>
+        </div>
+        <div>
+          <label>Qtd. de repetições
+            <input type="number" id="f_repeatCount" min="1" max="365" placeholder="Ex.: 30" />
+          </label>
+        </div>
+        <div>
+          <label>Notas
+            <input id="f_notes" placeholder="Detalhes, endereços, tarefas..." />
+          </label>
+        </div>
+      </div>
+      <div class="line"></div>
+      <div class="row" style="justify-content:space-between">
+        <div class="row" style="gap:8px">
+          <button class="btn" value="cancel">Cancelar</button>
+          <button class="btn primary" id="btnSave" value="default">Salvar</button>
+        </div>
+        <div class="row" style="gap:8px">
+          <button class="btn danger" id="btnDelete" type="button" style="display:none;background:linear-gradient(135deg,#8b1d1d,#ff5a5a);border-color:#8b1d1d">Excluir</button>
+        </div>
+      </div>
+      <input type="hidden" id="f_id" />
+    </form>
+  </dialog>
+
+  <!-- Modal: Perfil & Metas -->
+  <dialog id="dlgProfile">
+    <form class="modal" method="dialog" id="formProfile">
+      <h2>Perfil & Metas do Ministério</h2>
+      <div class="grid2">
+        <div>
+          <label>Perfil
+            <select id="p_type">
+              <option value="publicador">Publicador</option>
+              <option value="pr_regular">Pioneiro regular</option>
+              <option value="pr_aux">Pioneiro auxiliar</option>
+            </select>
+          </label>
+        </div>
+        <div>
+          <label>Meta personalizada (horas/mês — opcional)
+            <input type="number" id="p_custom" min="0" step="1" placeholder="Ex.: 10" />
+          </label>
+        </div>
+        <div id="auxBlock">
+          <label>Auxiliar — alvo do mês (15h ou 30h)
+            <select id="p_auxTarget">
+              <option value="15">15</option>
+              <option value="30">30</option>
+            </select>
+          </label>
+        </div>
+        <div id="auxMonthOnlyBlock">
+          <label>Aplicar só neste mês?
+            <select id="p_auxOnly">
+              <option value="yes">Sim</option>
+              <option value="no">Não (até mudar)</option>
+            </select>
+          </label>
+        </div>
+      </div>
+      <div class="line"></div>
+      <div class="row" style="justify-content:space-between">
+        <div class="row" style="gap:8px">
+          <button class="btn" value="cancel">Fechar</button>
+          <button class="btn primary" id="btnSaveProfile" value="default">Salvar</button>
+        </div>
+        <div class="row" style="gap:8px">
+          <button class="btn ghost" id="btnResetMonth" type="button">Zerar progresso do mês</button>
+        </div>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Modal: Plano de Leitura -->
+  <dialog id="dlgRead">
+    <form class="modal" method="dialog" id="formRead">
+      <h2>Plano de Leitura da Bíblia</h2>
+      <div class="read-row">
+        <div>
+          <label>Tipo de plano
+            <select id="r_type">
+              <option value="anual">Capa a capa (1 ano)</option>
+              <option value="personalizado">Personalizado</option>
+            </select>
+          </label>
+        </div>
+        <div>
+          <label>Início
+            <input type="date" id="r_start" />
+          </label>
+        </div>
+        <div id="r_personalized">
+          <label>Método
+            <select id="r_method">
+              <option value="cap_dia">Capítulos por dia</option>
+              <option value="dias_total">Terminar em (dias)</option>
+            </select>
+          </label>
+        </div>
+        <div id="r_capdia">
+          <label>Nº de capítulos por dia
+            <input type="number" id="r_chapsPerDay" min="1" max="20" step="1" value="3" />
+          </label>
+        </div>
+        <div id="r_dias">
+          <label>Terminar em quantos dias?
+            <input type="number" id="r_totalDays" min="1" max="1000" step="1" value="365" />
+          </label>
+        </div>
+        <div>
+          <label>Hora de leitura
+            <input type="time" id="r_time" value="07:00" />
+          </label>
+        </div>
+        <div>
+          <label>Duração estimada por dia (min)
+            <input type="number" id="r_minPerDay" min="5" max="180" step="5" value="30" />
+          </label>
+        </div>
+        <div>
+          <label>Lembrete (min. antes)
+            <input type="number" id="r_rem" min="0" step="5" value="10" />
+          </label>
+        </div>
+      </div>
+      <div class="line"></div>
+      <div class="row" style="justify-content:space-between">
+        <div class="row" style="gap:8px">
+          <button class="btn" value="cancel">Cancelar</button>
+          <button class="btn primary" id="btnGenRead" value="default">Gerar plano</button>
+        </div>
+        <div class="row" style="gap:8px">
+          <button class="btn danger" id="btnWipeRead" type="button" style="background:linear-gradient(135deg,#8b1d1d,#ff5a5a);border-color:#8b1d1d">Remover plano atual</button>
+        </div>
+      </div>
+    </form>
+  </dialog>
+
+  <audio id="beep" preload="auto" src="data:audio/mp3;base64,//uQZAAAAAAAAAAAAAAAAAAAAAAAWGluZwAAAA8AAAACAAACcQCAAAACAAACnQAAACcAAAACAAACfQAAACcAAAAEAAAChQAAACcAAAACAAAClwAAACcAAAAEAAACom1wMwAAAAAB//uQZAAAADhpbmcgYmVlcCBsb29wIGJhc2U2NCB0ZXN0AAAA//uQZAAAAFdNRTMuOThH//uQZAAAAA=="></audio>
+
+  <script>
+  // ===== Util =====
+  const $ = sel => document.querySelector(sel);
+  const $$ = sel => Array.from(document.querySelectorAll(sel));
+  const fmtDate = d => d.toLocaleDateString('pt-BR',{weekday:'short', day:'2-digit', month:'2-digit'});
+  const pad = n => (n<10?'0':'')+n;
+  const todayYMD = () => { const d=new Date(); return \`\${d.getFullYear()}-\${pad(d.getMonth()+1)}-\${pad(d.getDate())}\` };
+  const combine = (ymd, hm) => new Date(\`\${ymd}T\${hm}:00\`);
+  const ymKey = (d=new Date()) => \`\${d.getFullYear()}-\${pad(d.getMonth()+1)}\`;
+
+  const CAT = {
+    ministerio:{name:'Ministério', color:'var(--c-ministerio)'},
+    familia:{name:'Adoração em família', color:'var(--c-familia)'},
+    trabalho:{name:'Trabalho secular', color:'var(--c-trabalho)'},
+    reuniao:{name:'Reuniões', color:'var(--c-reuniao)'},
+    cong:{name:'Congregação — Arranjos', color:'var(--c-cong)'},
+    leitura:{name:'Leitura diária', color:'var(--c-leitura)'},
+    apoio:{name:'Ajudar o próximo', color:'var(--c-apoio)'},
+    custom:{name:'Personalizado', color:'var(--c-custom)'}
+  };
+
+  // ===== State =====
+  let state = {
+    weekStart: startOfWeek(new Date()),
+    events: loadEvents(),
+    profile: loadProfile()
+  };
+
+  function startOfWeek(d){ const x=new Date(d); const day=(x.getDay()+6)%7; x.setHours(0,0,0,0); x.setDate(x.getDate()-day); return x; } // Monday
+  function addDays(d,n){ const x=new Date(d); x.setDate(x.getDate()+n); return x; }
+
+  function loadEvents(){
+    try{ return JSON.parse(localStorage.getItem('events_v1')||'[]'); }catch(e){ return [] }
+  }
+  function saveEvents(){ localStorage.setItem('events_v1', JSON.stringify(state.events)); scheduleAllAlarms(); render(); updateDashboard(); }
+
+  function loadProfile(){
+    try{
+      const p = JSON.parse(localStorage.getItem('profile_v1')||'{}');
+      return Object.assign({type:'publicador', customTarget:null, auxTarget:15, auxOnly:true, auxMonth: ymKey(new Date())}, p);
+    }catch(e){ return {type:'publicador', customTarget:null, auxTarget:15, auxOnly:true, auxMonth: ymKey(new Date())}; }
+  }
+  function saveProfile(){ localStorage.setItem('profile_v1', JSON.stringify(state.profile)); updateDashboard(); }
+
+  // ===== Render week grid =====
+  function render(){
+    const start = state.weekStart; const end = addDays(start,6);
+    $('#weekLabel').textContent = \`\${fmtDate(start)} → \${fmtDate(end)}\`;
+
+    const grid = $('#grid'); grid.innerHTML = '';
+    for(let i=0;i<7;i++){
+      const d = addDays(start,i); const ymd = d.toISOString().slice(0,10);
+      const col = document.createElement('div'); col.className='col';
+      const h = document.createElement('h3');
+      const wname = d.toLocaleDateString('pt-BR',{weekday:'long'});
+      h.innerHTML = \`<span style="text-transform:capitalize">\${wname}</span><span class="tag">\${d.toLocaleDateString('pt-BR')}</span>\`;
+      col.appendChild(h);
+
+      const dayEvents = state.events
+        .filter(ev => ev.date === ymd)
+        .sort((a,b)=> (a.start||'').localeCompare(b.start||''));
+
+      if(dayEvents.length===0){
+        const p=document.createElement('div'); p.className='empty'; p.textContent='(sem compromissos)'; col.appendChild(p);
+      } else {
+        dayEvents.forEach(ev=> col.appendChild(renderEvent(ev)) );
+      }
+      grid.appendChild(col);
+    }
+  }
+
+  function renderEvent(ev){
+    const el = document.createElement('div'); el.className='event';
+    el.style.borderLeft = \`6px solid \${CAT[ev.cat]?.color||'#64748b'}\`;
+    el.innerHTML = \`<div class="t">\${ev.title}</div>
+      <div class="info">\${ev.start}–\${ev.end} • <span class="tag" style="border-color:\${CAT[ev.cat]?.color};color:\${CAT[ev.cat]?.color}">\${CAT[ev.cat]?.name||'—'}</span></div>
+      \${ev.notes?\`<div class="info">\${ev.notes}</div>\`:''}
+      \${ev.rem?\`<div class="info">🔔 Lembrete: \${ev.rem} min antes</div>\`:''}\`;
+    el.addEventListener('click', ()=> openModal(ev));
+    return el;
+  }
+
+  // ===== Modal logic (compromissos) =====
+  function openModal(ev){
+    $('#dlgTitle').textContent = ev? 'Editar compromisso' : 'Novo compromisso';
+    $('#f_id').value = ev?.id||'';
+    $('#f_title').value = ev?.title||'';
+    $('#f_cat').value = ev?.cat||'ministerio';
+    $('#f_date').value = ev?.date|| todayYMD();
+    $('#f_start').value = ev?.start|| '08:00';
+    $('#f_end').value = ev?.end|| '09:00';
+    $('#f_rem').value = ev?.rem??'';
+    $('#f_repeat').value = ev?.repeat||'none';
+    $('#f_repeatCount').value = ev?.repeatCount||'';
+    $('#f_notes').value = ev?.notes||'';
+    $('#btnDelete').style.display = ev? 'inline-flex':'none';
+    updateRepeatCountState();
+    $('#dlg').showModal();
+  }
+
+  function saveFromForm(){
+    const id = $('#f_id').value || (Date.now()+\"_\"+Math.random().toString(36).slice(2));
+    const ev = {
+      id,
+      title: $('#f_title').value.trim(),
+      cat: $('#f_cat').value,
+      date: $('#f_date').value,
+      start: $('#f_start').value,
+      end: $('#f_end').value,
+      rem: $('#f_rem').value? parseInt($('#f_rem').value,10): null,
+      repeat: $('#f_repeat').value,
+      repeatCount: (function(){
+        const v = parseInt($('#f_repeatCount').value,10);
+        if(Number.isFinite(v) && v>0) return v;
+        return null;
+      })(),
+      notes: $('#f_notes').value.trim()
+    };
+    if(!ev.title || !ev.date || !ev.start || !ev.end) return;
+    const idx = state.events.findIndex(e=> e.id===id);
+    if(idx>=0) state.events[idx]=ev; else state.events.push(ev);
+
+    // materializa recorrência
+    if(!$('#f_id').value){
+      const countWeeklyDefault = 8;
+      const countDailyDefault = 30;
+      if(ev.repeat==='weekly'){
+        const times = ev.repeatCount || countWeeklyDefault;
+        for(let i=1;i<=times;i++){
+          const nd = addDays(new Date(ev.date), 7*i);
+          state.events.push({...ev, id: id+\"w\"+i, date: nd.toISOString().slice(0,10)});
+        }
+      } else if(ev.repeat==='daily'){
+        const times = ev.repeatCount || countDailyDefault;
+        for(let i=1;i<=times;i++){
+          const nd = addDays(new Date(ev.date), i);
+          state.events.push({...ev, id: id+\"d\"+i, date: nd.toISOString().slice(0,10)});
+        }
+      }
+    }
+
+    saveEvents();
+    $('#dlg').close();
+  }
+
+  function deleteFromForm(){
+    const id = $('#f_id').value; if(!id) return;
+    state.events = state.events.filter(e=> e.id!==id);
+    saveEvents();
+    $('#dlg').close();
+  }
+
+  function updateRepeatCountState(){
+    const rep = $('#f_repeat').value;
+    const fld = $('#f_repeatCount');
+    if(rep==='none'){ fld.disabled = true; fld.placeholder = '—'; fld.value=''; }
+    else { fld.disabled = false; fld.placeholder = rep==='daily' ? 'dias (ex.: 30)' : 'semanas (ex.: 8)'; }
+  }
+
+  // ===== Alarms & Notifications =====
+  async function ensurePerms(){
+    try{
+      if(!('Notification' in window)) { alert('Seu navegador não suporta notificações.'); return; }
+      if(Notification.permission==='granted') { toast('Notificações ativas.'); return; }
+      const p = await Notification.requestPermission();
+      if(p==='granted') toast('Notificações permitidas.');
+      else alert('Você pode ativar notificações nas configurações do navegador.');
+    }catch(e){ console.error(e); }
+  }
+
+  let timers = [];
+  function clearTimers(){ timers.forEach(t=>clearTimeout(t)); timers=[]; }
+
+  function scheduleAllAlarms(){
+    clearTimers();
+    const now = Date.now();
+    state.events.forEach(ev=>{
+      if(!ev.rem && ev.rem!==0) return;
+      const start = combine(ev.date, ev.start).getTime();
+      const when = start - ev.rem*60000;
+      if(when>now){
+        const t = setTimeout(()=> notifyEvent(ev), when-now);
+        timers.push(t);
+      }
+    });
+  }
+
+  function notifyEvent(ev){
+    const beep = $('#beep'); beep.currentTime=0; beep.play().catch(()=>{});
+    if('Notification' in window && Notification.permission==='granted'){
+      const n = new Notification('⏰ Lembrete: '+ev.title, {
+        body: \`\${ev.date} \${ev.start} (\${CAT[ev.cat]?.name||''})\`,
+        tag: ev.id
+      });
+      n.onclick = ()=> window.focus();
+    }
+    toast(\`⏰ Lembrete: \${ev.title} — \${ev.start}\`);
+  }
+
+  function toast(msg){
+    const t = document.createElement('div');
+    t.textContent = msg;
+    t.style.cssText = 'position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#111a3b;border:1px solid #2a335a;color:#eaf2ff;padding:10px 14px;border-radius:12px;box-shadow:0 12px 30px rgba(0,0,0,.45);z-index:9999';
+    document.body.appendChild(t); setTimeout(()=>{ t.remove(); }, 3500);
+  }
+
+  // ===== Export / Import =====
+  function exportJSON(){
+    const blob = new Blob([JSON.stringify(state.events,null,2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href=url; a.download='agenda-espiritual.json'; a.click(); URL.revokeObjectURL(url);
+  }
+  function importJSON(file){
+    const r = new FileReader();
+    r.onload = () => { try{ state.events = JSON.parse(r.result||'[]'); saveEvents(); toast('Importado com sucesso.'); } catch(e){ alert('Arquivo inválido.'); } };
+    r.readAsText(file);
+  }
+
+  // ===== Theme handling =====
+  function setTheme(name){
+    if(name==='slate'){
+      document.documentElement.removeAttribute('data-theme');
+    } else {
+      document.documentElement.setAttribute('data-theme', name);
+    }
+    localStorage.setItem('theme_v1', name);
+  }
+  function initTheme(){
+    const t = localStorage.getItem('theme_v1') || 'slate';
+    if(t!=='slate') document.documentElement.setAttribute('data-theme', t);
+    $('#themeSelect').value = t;
+  }
+
+  // ===== Perfil & Metas (Dashboard) =====
+  function minutesBetween(ev){
+    try{
+      const s = combine(ev.date, ev.start).getTime();
+      const e = combine(ev.date, ev.end).getTime();
+      const diff = Math.max(0, e - s);
+      return Math.floor(diff/60000);
+    }catch(_){ return 0; }
+  }
+
+  function monthlyMinutes(year, month){
+    const ym = \`\${year}-\${pad(month)}\`;
+    const mins = state.events
+      .filter(ev => ev.cat==='ministerio' && ev.date && ev.date.startsWith(ym))
+      .map(minutesBetween).reduce((a,b)=>a+b,0);
+    return mins;
+  }
+
+  function targetMinutes(year, month){
+    const p = state.profile;
+    if(p.customTarget && p.customTarget>0) return p.customTarget*60;
+    if(p.type==='pr_regular') return 50*60;
+    if(p.type==='pr_aux'){
+      if(p.auxOnly){
+        if(p.auxMonth===\`\${year}-\${pad(month)}\`) return p.auxTarget*60;
+        else return 0;
+      } else {
+        return p.auxTarget*60;
+      }
+    }
+    return null; // publicador sem alvo
+  }
+
+  function hhmm(mins){
+    const h = Math.floor(mins/60);
+    const m = mins%60;
+    return \`\${pad(h)}:\${pad(m)}\`;
+  }
+
+  function updateDashboard(){
+    const now = new Date();
+    const mins = monthlyMinutes(now.getFullYear(), now.getMonth()+1);
+    const tgt = targetMinutes(now.getFullYear(), now.getMonth()+1);
+    const bar = $('#hrsBar'); const kpi = $('#hrsKpi'); const pct = $('#hrsPct');
+    if(tgt===null){
+      bar.style.width = '0%'; kpi.textContent = \`\${hhmm(mins)} / —\`; pct.textContent = '—';
+    } else {
+      const p = Math.min(100, Math.round((mins/tgt)*100));
+      bar.style.width = p+'%'; bar.style.setProperty('--pct', p);
+      kpi.textContent = \`\${hhmm(mins)} / \${hhmm(tgt)}\`;
+      pct.textContent = p+'%';
+    }
+    // resumo do perfil
+    const p = state.profile;
+    let desc = 'Perfil: ';
+    if(p.type==='publicador') desc += 'Publicador';
+    if(p.type==='pr_regular') desc += 'Pioneiro regular (meta 50h/mês)';
+    if(p.type==='pr_aux') desc += \`Pioneiro auxiliar (\${p.auxTarget}h \${p.auxOnly ? '— só no mês configurado' : 'por mês'})\`;
+    if(p.customTarget && p.customTarget>0) desc += \` • Meta personalizada: \${p.customTarget}h/mês\`;
+    $('#profileSummary').textContent = desc;
+  }
+
+  // ===== Cronômetro =====
+  let tInterval = null, tStart = 0, tAccum = 0, tRunning = false;
+
+  function formatHMS(ms){
+    const sec = Math.floor(ms/1000);
+    const h = Math.floor(sec/3600);
+    const m = Math.floor((sec%3600)/60);
+    const s = sec%60;
+    return \`\${pad(h)}:\${pad(m)}:\${pad(s)}\`;
+  }
+
+  function timerUpdate(){ $('#timerDisp').textContent = formatHMS(tAccum + (tRunning? Date.now()-tStart : 0)); }
+
+  function timerStart(){ if(!tRunning){ tRunning=true; tStart=Date.now(); tInterval=setInterval(timerUpdate,500); timerUpdate(); } }
+  function timerPause(){ if(tRunning){ tAccum += Date.now()-tStart; tRunning=false; clearInterval(tInterval); timerUpdate(); } }
+  function timerReset(){ tRunning=false; clearInterval(tInterval); tAccum=0; tStart=0; timerUpdate(); }
+
+  function timerSaveToCalendar(){
+    const totalMs = tAccum + (tRunning? Date.now()-tStart : 0);
+    if(totalMs<60000){ alert('Mínimo de 1 minuto para salvar.'); return; }
+    // cria evento do período anterior até agora (mesmo dia)
+    const now = new Date();
+    const end = now;
+    const start = new Date(now.getTime() - totalMs);
+    const dateYMD = todayYMD();
+    let startHM = pad(start.getHours())+':'+pad(start.getMinutes());
+    let endHM = pad(end.getHours())+':'+pad(end.getMinutes());
+    // se atravessou o dia, trava no mínimo 00:00 do dia atual
+    if(start.toDateString()!==end.toDateString()){
+      startHM = '00:00';
+    }
+    const id = Date.now()+\"_cronometro\";
+    const ev = { id, title:'Ministério (Cronômetro)', cat:'ministerio', date:dateYMD, start:startHM, end:endHM, rem:null, repeat:'none', notes:'Registro via cronômetro' };
+    state.events.push(ev);
+    saveEvents();
+    timerReset();
+    toast('Tempo salvo no calendário.');
+  }
+
+  // ===== Leitura Bíblica =====
+  const BIBLE = [
+    {abbr:'Gn', name:'Gênesis', ch:50},{abbr:'Êx', name:'Êxodo', ch:40},{abbr:'Lv', name:'Levítico', ch:27},{abbr:'Nm', name:'Números', ch:36},{abbr:'Dt', name:'Deuteronômio', ch:34},
+    {abbr:'Js', name:'Josué', ch:24},{abbr:'Jz', name:'Juízes', ch:21},{abbr:'Rt', name:'Rute', ch:4},{abbr:'1Sm', name:'1 Samuel', ch:31},{abbr:'2Sm', name:'2 Samuel', ch:24},
+    {abbr:'1Rs', name:'1 Reis', ch:22},{abbr:'2Rs', name:'2 Reis', ch:25},{abbr:'1Cr', name:'1 Crônicas', ch:29},{abbr:'2Cr', name:'2 Crônicas', ch:36},{abbr:'Ed', name:'Esdras', ch:10},
+    {abbr:'Ne', name:'Neemias', ch:13},{abbr:'Et', name:'Ester', ch:10},{abbr:'Jó', name:'Jó', ch:42},{abbr:'Sl', name:'Salmos', ch:150},{abbr:'Pv', name:'Provérbios', ch:31},
+    {abbr:'Ec', name:'Eclesiastes', ch:12},{abbr:'Ct', name:'Cântico de Salomão', ch:8},{abbr:'Is', name:'Isaías', ch:66},{abbr:'Jr', name:'Jeremias', ch:52},{abbr:'Lm', name:'Lamentações', ch:5},
+    {abbr:'Ez', name:'Ezequiel', ch:48},{abbr:'Dn', name:'Daniel', ch:12},{abbr:'Os', name:'Oséias', ch:14},{abbr:'Jl', name:'Joel', ch:3},{abbr:'Am', name:'Amós', ch:9},
+    {abbr:'Ob', name:'Obadias', ch:1},{abbr:'Jn', name:'Jonas', ch:4},{abbr:'Mq', name:'Miquéias', ch:7},{abbr:'Na', name:'Naum', ch:3},{abbr:'Hc', name:'Habacuque', ch:3},
+    {abbr:'Sf', name:'Sofonias', ch:3},{abbr:'Ag', name:'Ageu', ch:2},{abbr:'Zc', name:'Zacarias', ch:14},{abbr:'Ml', name:'Malaquias', ch:4},
+    {abbr:'Mt', name:'Mateus', ch:28},{abbr:'Mc', name:'Marcos', ch:16},{abbr:'Lc', name:'Lucas', ch:24},{abbr:'Jo', name:'João', ch:21},{abbr:'At', name:'Atos', ch:28},
+    {abbr:'Rm', name:'Romanos', ch:16},{abbr:'1Co', name:'1 Coríntios', ch:16},{abbr:'2Co', name:'2 Coríntios', ch:13},{abbr:'Gl', name:'Gálatas', ch:6},{abbr:'Ef', name:'Efésios', ch:6},
+    {abbr:'Fp', name:'Filipenses', ch:4},{abbr:'Cl', name:'Colossenses', ch:4},{abbr:'1Ts', name:'1 Tessalonicenses', ch:5},{abbr:'2Ts', name:'2 Tessalonicenses', ch:3},
+    {abbr:'1Tm', name:'1 Timóteo', ch:6},{abbr:'2Tm', name:'2 Timóteo', ch:4},{abbr:'Tt', name:'Tito', ch:3},{abbr:'Fm', name:'Filemom', ch:1},{abbr:'Hb', name:'Hebreus', ch:13},
+    {abbr:'Tg', name:'Tiago', ch:5},{abbr:'1Pe', name:'1 Pedro', ch:5},{abbr:'2Pe', name:'2 Pedro', ch:3},{abbr:'1Jo', name:'1 João', ch:5},{abbr:'2Jo', name:'2 João', ch:1},
+    {abbr:'3Jo', name:'3 João', ch:1},{abbr:'Jd', name:'Judas', ch:1},{abbr:'Ap', name:'Revelação', ch:22}
+  ];
+  const TOTAL_CHAPS = BIBLE.reduce((a,b)=>a+b.ch,0); // 1189
+
+  function buildDailyRefs(startDate, planDays){ // distribui exatamente em planDays
+    const base = new Date(startDate);
+    const per = Math.floor(TOTAL_CHAPS/planDays);
+    let extra = TOTAL_CHAPS % planDays; // dias que terão +1 capítulo
+    let curBook=0, curChap=1;
+    const days = [];
+    for(let d=0; d<planDays; d++){
+      const dayChaps = per + (extra>0?1:0);
+      if(extra>0) extra--;
+      let remain = dayChaps;
+      const segs = [];
+      while(remain>0 && curBook<BIBLE.length){
+        const book = BIBLE[curBook];
+        const start = curChap;
+        const can = Math.min(remain, book.ch - (curChap-1));
+        const end = curChap + can - 1;
+        segs.push(book.abbr+' '+(start===end? start : (start+'-'+end)));
+        remain -= can;
+        curChap = end+1;
+        if(curChap>book.ch){ curBook++; curChap=1; }
+      }
+      const dateYMD = base.toISOString().slice(0,10);
+      days.push({date: dateYMD, ref: segs.join('; ')});
+      base.setDate(base.getDate()+1);
+      if(curBook>=BIBLE.length) break;
+    }
+    return days;
+  }
+
+  function buildDailyRefsByChaps(startDate, chapsPerDay){
+    const base = new Date(startDate);
+    let remainTotal = TOTAL_CHAPS;
+    let curBook=0, curChap=1;
+    const days = [];
+    while(remainTotal>0){
+      const per = Math.min(chapsPerDay, remainTotal);
+      let r = per; const segs=[];
+      while(r>0 && curBook<BIBLE.length){
+        const book = BIBLE[curBook];
+        const start = curChap;
+        const can = Math.min(r, book.ch - (curChap-1));
+        const end = curChap + can - 1;
+        segs.push(book.abbr+' '+(start===end? start : (start+'-'+end)));
+        r -= can;
+        curChap = end+1;
+        if(curChap>book.ch){ curBook++; curChap=1; }
+      }
+      const dateYMD = base.toISOString().slice(0,10);
+      days.push({date: dateYMD, ref: segs.join('; ')});
+      base.setDate(base.getDate()+1);
+      remainTotal -= per;
+    }
+    return days;
+  }
+
+  function genReadPlan(){
+    const type = $('#r_type').value;
+    const start = $('#r_start').value || todayYMD();
+    const time = $('#r_time').value || '07:00';
+    const minDay = parseInt($('#r_minPerDay').value,10) || 30;
+    const rem = parseInt($('#r_rem').value,10)||0;
+    let days = [];
+    if(type==='anual'){
+      days = buildDailyRefs(start, 365);
+    } else {
+      const method = $('#r_method').value;
+      if(method==='cap_dia'){
+        const cpd = Math.max(1, Math.min(20, parseInt($('#r_chapsPerDay').value,10)||3));
+        days = buildDailyRefsByChaps(start, cpd);
+      } else {
+        const td = Math.max(1, Math.min(1000, parseInt($('#r_totalDays').value,10)||365));
+        days = buildDailyRefs(start, td);
+      }
+    }
+    // cria eventos
+    const idBase = Date.now()+\"_leitura_\";
+    days.forEach((d,i)=>{
+      // fim = início + minDay
+      const startDate = new Date(d.date+'T'+time+':00');
+      const endDate = new Date(startDate.getTime() + minDay*60000);
+      const ev = {
+        id: idBase+i,
+        title: 'Leitura: '+d.ref,
+        cat: 'leitura',
+        date: d.date,
+        start: pad(startDate.getHours())+':'+pad(startDate.getMinutes()),
+        end: pad(endDate.getHours())+':'+pad(endDate.getMinutes()),
+        rem: rem,
+        repeat: 'none',
+        notes: ''
+      };
+      state.events.push(ev);
+    });
+    saveEvents();
+    $('#readSummary').textContent = \`Plano criado com \${days.length} dias a partir de \${start}.\`;
+    toast('Plano de leitura criado.');
+  }
+
+  function wipeReadPlan(){
+    const before = state.events.length;
+    state.events = state.events.filter(e=> e.cat!=='leitura');
+    const removed = before - state.events.length;
+    saveEvents();
+    $('#readSummary').textContent = removed>0 ? \`Removidos \${removed} eventos de Leitura.\` : 'Nenhum evento de Leitura para remover.';
+    toast('Plano de leitura removido.');
+  }
+
+  // ===== Bindings =====
+  $('#btnPrev').onclick = ()=>{ state.weekStart = addDays(state.weekStart,-7); render(); };
+  $('#btnNext').onclick = ()=>{ state.weekStart = addDays(state.weekStart, 7); render(); };
+  $('#btnNew').onclick = ()=> openModal();
+  $('#btnExport').onclick = exportJSON;
+  $('#btnImport').onclick = ()=> $('#fileImport').click();
+  $('#fileImport').addEventListener('change', e=>{ const f=e.target.files?.[0]; if(f) importJSON(f); e.target.value=''; });
+  $('#btnPerms').onclick = ensurePerms;
+
+  $('#btnDelete').onclick = deleteFromForm;
+  $('#btnSave').onclick = (e)=>{ e.preventDefault(); saveFromForm(); };
+  $('#f_repeat').addEventListener('change', updateRepeatCountState);
+  $('#themeSelect').addEventListener('change', e=> setTheme(e.target.value));
+
+  // Perfil modal
+  function showProfileBlocks(){
+    const isAux = $('#p_type').value==='pr_aux';
+    $('#auxBlock').style.display = isAux? 'block':'none';
+    $('#auxMonthOnlyBlock').style.display = isAux? 'block':'none';
+  }
+  $('#btnProfile').onclick = ()=>{
+    // load into form
+    $('#p_type').value = state.profile.type;
+    $('#p_custom').value = state.profile.customTarget??'';
+    $('#p_auxTarget').value = state.profile.auxTarget;
+    $('#p_auxOnly').value = state.profile.auxOnly? 'yes':'no';
+    showProfileBlocks();
+    $('#dlgProfile').showModal();
+  };
+  $('#p_type').addEventListener('change', showProfileBlocks);
+  $('#btnSaveProfile').onclick = (e)=>{
+    e.preventDefault();
+    const p = state.profile;
+    p.type = $('#p_type').value;
+    const ct = parseInt($('#p_custom').value,10); p.customTarget = Number.isFinite(ct) && ct>0 ? ct : null;
+    p.auxTarget = parseInt($('#p_auxTarget').value,10)||15;
+    p.auxOnly = $('#p_auxOnly').value==='yes';
+    if(p.type==='pr_aux' && p.auxOnly){ p.auxMonth = ymKey(new Date()); }
+    saveProfile();
+    $('#dlgProfile').close();
+    toast('Perfil salvo.');
+  };
+  $('#btnResetMonth').onclick = ()=>{
+    // remove eventos de ministério do mês atual
+    const now = new Date(); const ym = ymKey(now);
+    const before = state.events.length;
+    state.events = state.events.filter(e=> !(e.cat==='ministerio' && e.date && e.date.startsWith(ym)));
+    saveEvents();
+    toast('Progresso do mês limpo ('+(before-state.events.length)+' itens removidos).');
+  };
+
+  // Timer buttons
+  $('#tStart').onclick = timerStart;
+  $('#tPause').onclick = timerPause;
+  $('#tReset').onclick = timerReset;
+  $('#tSave').onclick = timerSaveToCalendar;
+
+  // Reading modal
+  function toggleReadMethod(){
+    const personalized = $('#r_type').value==='personalizado';
+    $('#r_personalized').style.display = personalized? 'block':'none';
+    const isCapDia = $('#r_method').value==='cap_dia';
+    $('#r_capdia').style.display = personalized && isCapDia? 'block':'none';
+    $('#r_dias').style.display = personalized && !isCapDia? 'block':'none';
+  }
+  $('#btnRead').onclick = ()=>{
+    $('#r_type').value = 'anual';
+    $('#r_start').value = todayYMD();
+    $('#r_method').value = 'cap_dia';
+    $('#r_chapsPerDay').value = 3;
+    $('#r_totalDays').value = 365;
+    $('#r_time').value = '07:00';
+    $('#r_minPerDay').value = 30;
+    $('#r_rem').value = 10;
+    toggleReadMethod();
+    $('#dlgRead').showModal();
+  };
+  $('#r_type').addEventListener('change', toggleReadMethod);
+  $('#r_method').addEventListener('change', toggleReadMethod);
+  $('#btnGenRead').onclick = (e)=>{ e.preventDefault(); genReadPlan(); $('#dlgRead').close(); };
+  $('#btnWipeRead').onclick = (e)=>{ e.preventDefault(); wipeReadPlan(); };
+  $('#btnClearRead').onclick = (e)=>{ e.preventDefault(); wipeReadPlan(); };
+
+  // Initial
+  render(); scheduleAllAlarms(); initTheme(); updateRepeatCountState(); updateDashboard(); timerUpdate();
+
+  // Add default fixed meetings if empty
+  if(state.events.length===0){
+    const addFixed = (title, cat, weekday, time, minutesBefore)=>{
+      const base = startOfWeek(new Date());
+      const d = addDays(base, weekday); const ymd = d.toISOString().slice(0,10);
+      const id = Date.now()+\"_fix_\"+weekday+time.replace(':','');
+      state.events.push({id,title,cat,date:ymd,start:time,end:time,rem:minutesBefore,repeat:'weekly',notes:''});
+    };
+    // Quinta 20:00 e Domingo 19:30
+    addFixed('Reunião (Quinta)', 'reuniao', 3, '20:00', 30);
+    addFixed('Reunião (Domingo)', 'reuniao', 6, '19:30', 30);
+    saveEvents();
+  }
+  </script>
+</body>
+</html>
